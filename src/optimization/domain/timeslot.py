@@ -13,7 +13,7 @@ from src.optimization.domain.exam import Exam
 
 
 class Timeslot(object):
-    def __init__(self, timeslot_id):
+    def __init__(self, timeslot_id=-1):
         self.num_collisions = 0
         self.exams = []
         self._id = timeslot_id
@@ -91,7 +91,7 @@ class Timeslot(object):
         Tell if there are exams currently scheduled in this timeslot
         :return: True if this timeslot currently free
         """
-        return True if self.exams else False
+        return False if self.exams else True
 
     def conflict_weight(self, conflict_weights: dict) -> int:
         """
@@ -196,7 +196,7 @@ class Timeslot(object):
                 positioned.append(e)
         return positioned
 
-    def get_exam_by_id(self, e_id: int) -> Exam:
+    def get_exam_by_id(self, e_id: int):
         for e in self.exams:
             if e.id == e_id:
                 return e
