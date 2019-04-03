@@ -8,6 +8,7 @@
 @desc: 
 """
 import random
+from typing import List
 
 from src.optimization.domain.exam import Exam
 
@@ -18,7 +19,7 @@ class Timeslot(object):
         self.exams = []
         self._id = timeslot_id
 
-    def get_exams(self):
+    def get_exams(self) -> List[Exam]:
         return self.exams
 
     @property
@@ -95,10 +96,12 @@ class Timeslot(object):
 
     def conflict_weight(self, conflict_weights: dict) -> int:
         """
-        Count the weight of the conflict between an exam with a certain set
-        of conflicting exams (represented by the conflictWeight) and this
-        timeslot
-        # Todo: try to figure out what's this func built for
+        Count the weight of the conflict between an exam with it's conflicting
+        exams (represented by the conflictWeight) and this timeslot
+        there are many exam in one timeslot. some of the exam may conflict
+        while students are enrolled both of them.so a timeslot object must
+        maintain a conflict table which show the conflict status in it.
+
         :param conflict_weights: a dict [Exam.id, number of commonStudent]
         :return:
         """
@@ -111,7 +114,7 @@ class Timeslot(object):
     def num_exams(self):
         return len(self.exams)
 
-    def __eq__(self, other: Timeslot) -> bool:
+    def __eq__(self, other: 'Timeslot') -> bool:
         if self == other:
             return True
         if other is None:
@@ -181,7 +184,7 @@ class Timeslot(object):
         tmp_set.add(set(new_exams))
         return list(tmp_set)
 
-    def try_insert_exams(self, to_insert: list[Exam]) -> list[Exam]:
+    def try_insert_exams(self, to_insert: List[Exam]) -> List[Exam]:
         """
         For each exam in to_insert, if the timeslot doesn't contain it,
         and timeslot is compatible with it. we assign this exam to current 

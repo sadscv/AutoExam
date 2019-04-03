@@ -33,7 +33,7 @@ class Exam(object):
         Add a new exam to this exam collisions set
         if there wasn't any previous collision between this exam and eid,
         then create a new row inside the collision set and set the number of
-        students involved in the collision to one. Otherwise, increase the
+        students involved in the collision to 1. Otherwise, increase the
         old value by one.
 
         :param num_students: number of students conflicted while adding that
@@ -42,7 +42,7 @@ class Exam(object):
         exams set
         """
         if num_students:
-            self.conflicting_exams[eid] = num_students
+            self.conflicting_exams[eid] = 1
         else:
             num_stu_involved = 1
             if eid in self.conflicting_exams:
@@ -50,6 +50,10 @@ class Exam(object):
             self.conflicting_exams[eid] = num_stu_involved
 
     def get_conflict_exam(self) -> dict:
+        """
+        dict{eid:num_conflict}
+        :return:
+        """
         return self.conflicting_exams
 
     def stu_involved_in_collision(self, exam_id: int) -> int:
@@ -77,7 +81,7 @@ class Exam(object):
     def conflict_exam_size(self):
         return len(self.conflicting_exams)
 
-    def compare_to(self, other: Exam) -> int:
+    def compare_to(self, other: 'Exam') -> int:
         return self.conflict_exam_size() - other.conflict_exam_size()
 
     def __str__(self):
@@ -107,6 +111,3 @@ class Exam(object):
             clone.add_conflicting_exams(key)
             clone.add_conflicting_exams(key, value)
         return clone
-
-
-
