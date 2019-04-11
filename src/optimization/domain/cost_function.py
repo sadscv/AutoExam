@@ -17,7 +17,8 @@ from src.optimization.domain.timeslot import Timeslot
 class CostFunction(object):
     COST = [0, 16, 8, 4, 2, 1]
 
-    def get_cost(self, timeslots: [Schedule, List[Timeslot]]) -> int:
+    def get_cost(self, timeslots: List[Timeslot],
+                 cost_map: dict = None) -> int:
         """
         Return the cost of a certain timeslot configuration.
         N.B. it still has to be weighted by the total number of students.
@@ -26,12 +27,24 @@ class CostFunction(object):
         [(t1,t4)(t2,t5)(t3,t6)(t4,t7)]*COST[3]
         [(t1,t5)(t2,t6)(t3,t7)]*COST[4]
         [(t1,t6)(t2,t7)]*COST[5]
+        :param cost_map: a pair of timeslot and their cost calculated when
+        their distance=1.
         :param timeslots:
         :return:
         """
+        penalty = 0
+        # Todo separate this to two funcs: get_cost_map and get_cost
+        if cost_map:
+            divisor = [0, 1, 2, 4, 8, 16]
+            for i in range(1, 6):
+                for j in range(len(timeslots) - i):
+                    couple_hash = Schedule. \
+                        get_timeslot_pair_hash(timeslots[j], timeslots[j + i])
+                    penalty += cost_map[couple_hash] / divisor[i]
+            return penalty
+
         if isinstance(timeslots, Schedule):
             timeslots = timeslots.timeslots
-        penalty = 0
         for i in range(1, 6):
             for t in range(len(timeslots) - i):
                 # calculate each `e`'s conflict weights on this `t`
@@ -39,6 +52,10 @@ class CostFunction(object):
                     penalty += timeslots[t + i].conflict_weight(
                         e.get_conflict_exam()) * self.COST[i]
         return penalty
+
+    def get_mutual_timeslots_cost(self, t1: Timeslot, t2: Timeslot) -> int:
+        timeslots = [t1, t2]
+        return self.get_cost(timeslots)
 
     def get_exam_cost(self, e: Exam, src: int,
                       timeslots: List[Timeslot]) -> int:
@@ -160,7 +177,10 @@ class CostFunction(object):
     def calc_reposition_penalty(self, start: int, end: int, invert_index: int,
                                 index: int, timeslots: List[Timeslot]) -> int:
         """
-        Todo to read the func tomorrow
+        Calculate the penalty generated in case :timeslot `index` moved to
+        `invert_index`, while assuming all other timeslots in [start,end] has
+        already repositioned.
+        invert_index => index
         :param start:
         :param end:
         :param invert_index:
@@ -174,7 +194,11 @@ class CostFunction(object):
             if i != invert_index:
                 distance = invert_index - i
                 t = timeslots[i]
-
+                # assuming we have timeslot=[1,2,3,4,5,6,7,8,9]. when we switch
+                # timeslot 3<=>5 , we should calculate the conflict_weight
+                # that the timeslot closed to timeslot(5). as is [3,4,5,6,7].
+                # but here we should remember that timeslot(3,4) had already
+                # switched to timeslot(2,1) cuz it's in reposition operation.
                 if start <= i < end:
                     t = timeslots[end - 1 - (i - start)]
                 for e in timeslots[index].get_exams():

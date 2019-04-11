@@ -82,6 +82,11 @@ class Exam(object):
         return len(self.conflicting_exams)
 
     def compare_to(self, other: 'Exam') -> int:
+        """
+        Todo update to __cmp__ or lt,gt etc.
+        :param other:
+        :return:
+        """
         return self.conflict_exam_size() - other.conflict_exam_size()
 
     def __str__(self):

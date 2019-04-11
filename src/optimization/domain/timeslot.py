@@ -66,7 +66,7 @@ class Timeslot(object):
         collision_generated = 0
         for e in self.exams:
             collision_generated += pending_exam.stu_involved_in_collision(e.id)
-        self.exams.add(pending_exam)
+        self.exams.append(pending_exam)
         self.num_collisions += collision_generated
 
     def is_compatible(self, e: Exam) -> bool:
@@ -87,8 +87,8 @@ class Timeslot(object):
         return True
 
     def is_free(self):
-        # Todo:test this func
         """
+         Todo:test this func
         Tell if there are exams currently scheduled in this timeslot
         :return: True if this timeslot currently free
         """
