@@ -70,7 +70,8 @@ class Schedule(object):
             Timeslot:
         """
         Return a random Timeslot up to a certain bound which bucket provided,
-        if bucket not given. it's up bound is self._timeslot
+        if bucket not given. it's up bound is self._timeslot. if bucket is
+        list[int], return a random timeslot in the bucket
         :return:
         """
         if not bucket:
@@ -80,7 +81,7 @@ class Schedule(object):
         else:
             return self._timeslots[bucket[random.randint(len(bucket))]]
 
-    def get_timeslot_with_exams(self):
+    def get_timeslot_include_exams(self):
         """
         Return a timeslot which must contain exams.
         :return:
@@ -119,8 +120,7 @@ class Schedule(object):
             return True
         return False
 
-    def check_feasible_swap(self, t1: Timeslot, ex1: Exam,
-                            t2: Timeslot, ex2: Exam):
+    def check_feasible_swap(self, t1: Timeslot, ex1: Exam, t2: Timeslot, ex2: Exam):
         return self.check_swap(t1, ex1, ex2) and self.check_swap(t2, ex2, ex1)
 
     @staticmethod
@@ -142,8 +142,7 @@ class Schedule(object):
         self.move(ex1, t1, t2)
         self.move(ex2, t2, t1)
 
-    def random_placement(self, tobe_placed: Exam,
-                         bound: [int, List[int]] = None):
+    def random_placement(self, tobe_placed: Exam, bound: [int, List[int]] = None):
         """
         Tries to place an exam into a random Timeslot. considering a window
         of timeslots of `bound`
@@ -174,7 +173,7 @@ class Schedule(object):
         Try to move an exam from one timeslot to another randomly
         :return: T/F
         """
-        tj = self.get_timeslot_with_exams()
+        tj = self.get_timeslot_include_exams()
         tk = self.get_random_timeslot(bound)
 
         ex = tj.get_random_exam()
@@ -185,8 +184,8 @@ class Schedule(object):
         Try to swap two exam randomly
         :return:
         """
-        tj = self.get_timeslot_with_exams()
-        tk = self.get_timeslot_with_exams()
+        tj = self.get_timeslot_include_exams()
+        tk = self.get_timeslot_include_exams()
         ex1 = tj.get_random_exam()
         ex2 = tk.get_random_exam()
         if self.check_feasible_swap(tj, ex1, tk, ex2):
@@ -263,7 +262,7 @@ class Schedule(object):
         return s
 
     def __cmp__(self, other: 'Schedule') -> int:
-        return self.get_cost() - other.get_cost()
+        return self._cost - other._cost
 
     def __eq__(self, other):
         if not issubclass(other, Schedule):
@@ -293,8 +292,8 @@ class Schedule(object):
         reduce penalty.
         :return:
         """
-        ti = self.get_timeslot_with_exams()
-        tj = self.get_timeslot_with_exams()
+        ti = self.get_timeslot_include_exams()
+        tj = self.get_timeslot_include_exams()
         ex1 = tj.get_random_exam()
         ex2 = tj.get_random_exam()
 
@@ -373,12 +372,17 @@ class Schedule(object):
             self.timeslots[start + i].add_exams(tmp_slots[i].get_exams())
 
     def try_crossover(self, parent2exams: List[Exam]):
+        """
+        Choose a random exam among `parent2exams`. it's the cost function
+        decreased, do the crossover.we call it `穿越`
+
+        :param parent2exams:
+        :return:
+        """
         if parent2exams is None:
             return False
-
         candidate = parent2exams[random.randint(len(parent2exams))]
         for t in self.timeslots:
-            # Todo check if a exam in a list[exam] is eaxm = e in list[exam]
             if t.contains(candidate):
                 penalty = self.calc_crossover_penalty(parent2exams, t)
                 if penalty < 0:
@@ -387,7 +391,16 @@ class Schedule(object):
                     return True
         return False
 
-    def calc_crossover_penalty(self, parent2exams, dest):
+    def calc_crossover_penalty(self, parent2exams: List[Exam], dest: Timeslot)\
+            -> int:
+        """
+        For each exam in `parent2exams`. if the exam is not in timeslot
+        `dest` and compatible to move to dest, calculate the penalty related
+        to the movements.
+        :param parent2exams:
+        :param dest:
+        :return:
+        """
         penalty = 0
         for e in parent2exams:
             src = self.get_timeslot_by_exams(e)
@@ -407,7 +420,7 @@ class Schedule(object):
         :return:
         """
         positioned_exams = t.try_insert_exams(parent2exams)
-        # Todo test if positioned_exams is empy
+        # Todo test if positioned_exams is empty
         if positioned_exams:
             self.fix_schedule(t, positioned_exams)
 
@@ -425,7 +438,7 @@ class Schedule(object):
 
     def get_timeslot_by_exams(self, e: Exam):
         """
-        Retrive the timeslots which contains exam `e`
+        Retrieve the timeslots which contains exam `e`
         :param e:
         :return:
         """
@@ -434,9 +447,9 @@ class Schedule(object):
                 return t
         return None
 
-    def compute_cost(self, cost_map=None):
+    def compute_cost(self, cost_map: dict = None):
         if cost_map:
             # Todo, complete this fun with cost_map parameter
-            # self._cost = self.cost_func.get_cost(self.timeslots, cost_map)
-            pass
+            self._cost = self.cost_func.get_cost(self.timeslots, cost_map)
+            # pass
         self._cost = self.cost_func.get_cost(self.timeslots)
