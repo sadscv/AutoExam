@@ -21,14 +21,14 @@ class Schedule(object):
     def __init__(self, tmax, num_students):
         self.MAX_SWAP_TRIES = 10
         self._cost = 0
-        self.tmax = tmax
+        self._tmax = tmax
         self._timeslots = self.init_timeslots()
         self.cost_func = CostFunction()
         self.num_students = num_students
 
     def init_timeslots(self) -> List[Timeslot]:
         ts = []
-        for i in range(self.tmax):
+        for i in range(self._tmax):
             ts.append(Timeslot(i))
         return ts
 
@@ -248,10 +248,10 @@ class Schedule(object):
         return t1.__hash__() + "-" + t2.__hash__()
 
     def __copy__(self):
-        s = Schedule(self.tmax, self.num_students)
+        s = Schedule(self._tmax, self.num_students)
         s.cost = self.cost
         tclone = []
-        for i in range(self.tmax):
+        for i in range(self._tmax):
             tclone.append(self.timeslots[i].__copy__())
         s.timeslots = tclone
 

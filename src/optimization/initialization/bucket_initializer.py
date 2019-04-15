@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 _*-
-""" 
+"""
 @author: sadscv
 @time: 2019/04/06 18:00
 @file: bucket_initializer.py
 
-@desc: 
+@desc:
 """
 import random
 from typing import List, Any
@@ -67,18 +67,19 @@ class BucketInitializer(AbstractInitializer):
         current_bucket: List[int] = self.buckets[bucket_i]
         bucket_i += 1
         while self.not_yet_placed:
-            # try to process not_yet_placed[] as much as possible.
             self.compute_random_schedule(current_bucket)
-            # when we can't move an exam from an random timeslot to an timeslot
-            # within current_bucket, we stop the random initialize.
+            # can't understand this while loop
             while not self.random_move(current_bucket):
                 pass
             num_tries += 1
+            # if trial time exceeds the `THRESHOLD`
             if num_tries > self.THRESHOLD:
+                # if haven't increase the bucket size
                 if bucket_i < 6:
                     current_bucket.append(self.buckets[bucket_i])
                     self.current_width = len(current_bucket)
                     bucket_i += 1
+                # if bucket size already increased.
                 else:
                     im_stuck += 1
                     if im_stuck == self.STUCK:
@@ -129,21 +130,20 @@ class BucketInitializer(AbstractInitializer):
     def compute_random_schedule(self, current_bucket):
         """
         Tries to generate a schedule by means of random computation.
-        :param current_bucket: The bucket of timeslots which `not_yet_placed[0]`
-                               trying to insert into.
+        :param current_bucket:
         :return:
         """
         i = 0
         while self.not_yet_placed and i < len(self.not_yet_placed):
             to_be_placed = self.not_yet_placed[i]
-            # cuz not_yet_placed[0] always been the most involved exam,
+            # cuz not_yet_placed[0] always is the most involved exam,
             # so we dont need to ++i in the while loop when we
-            # successfully place previous `to_be_placed` exam.
+            # successfully place last `to_be_placed` exam.
             if not self.try_random_placement(to_be_placed, current_bucket):
                 i += 1
+                break
                 # use break to interrupt the while loop, in case of most of the
                 # exams are assigned into one color all at once.
-                break
 
     def random_move(self, current_bucket):
         """
@@ -157,6 +157,21 @@ class BucketInitializer(AbstractInitializer):
         return False
 
     def restart(self):
+        """
+        Restarts the entire process. reset all parameters to their initial values.
+        :return:
+        """
+        tmax = self.schedule.tmax()
+        num_students = self.schedule.get_num_students()
+        self.current_width = 0
+        self.not_yet_placed = []
+        self.already_placed = []
+        self.schedule = Schedule(tmax, num_students)
+        self.buckets = []
+        self.initialize_buckets()
+        self.THRESHOLD += 1
+
+
         pass
 
     def try_random_placement(self, to_be_placed, current_bucket):
