@@ -66,7 +66,7 @@ class ExamArranger:
     def _check_para(self):
         """
         check if Para table exist.
-        if not exist: create Para table && add init value.
+        if not exist: create Para table and add init value.
         :return: None
         """
         if not self._check_table("Para"):

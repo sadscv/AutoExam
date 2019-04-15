@@ -1,4 +1,4 @@
-#!/usr/bin/env python  
+#!/usr/bin/env python
 # -*- coding:utf-8 _*-
 """ 
 @author: sadscv
@@ -64,10 +64,13 @@ class BucketInitializer(AbstractInitializer):
         :return:
         """
         num_tries = im_stuck = bucket_i = 0
-        current_bucket = self.buckets[bucket_i]
+        current_bucket: List[int] = self.buckets[bucket_i]
         bucket_i += 1
         while self.not_yet_placed:
+            # try to process not_yet_placed[] as much as possible.
             self.compute_random_schedule(current_bucket)
+            # when we can't move an exam from an random timeslot to an timeslot
+            # within current_bucket, we stop the random initialize.
             while not self.random_move(current_bucket):
                 pass
             num_tries += 1
@@ -126,20 +129,21 @@ class BucketInitializer(AbstractInitializer):
     def compute_random_schedule(self, current_bucket):
         """
         Tries to generate a schedule by means of random computation.
-        :param current_bucket:
+        :param current_bucket: The bucket of timeslots which `not_yet_placed[0]`
+                               trying to insert into.
         :return:
         """
         i = 0
         while self.not_yet_placed and i < len(self.not_yet_placed):
             to_be_placed = self.not_yet_placed[i]
-            # cuz not_yet_placed[0] always is the most involved exam,
+            # cuz not_yet_placed[0] always been the most involved exam,
             # so we dont need to ++i in the while loop when we
-            # successfully place last `to_be_placed` exam.
+            # successfully place previous `to_be_placed` exam.
             if not self.try_random_placement(to_be_placed, current_bucket):
                 i += 1
-                break
                 # use break to interrupt the while loop, in case of most of the
                 # exams are assigned into one color all at once.
+                break
 
     def random_move(self, current_bucket):
         """

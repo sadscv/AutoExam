@@ -170,7 +170,7 @@ class Schedule(object):
 
     def random_move(self, bound: [int, List[int]] = None) -> bool:
         """
-        Try to move an exam from one timeslot to another randomly
+        Try to move an exam from one timeslot to another timeslot randomly
         :return: T/F
         """
         tj = self.get_timeslot_include_exams()
